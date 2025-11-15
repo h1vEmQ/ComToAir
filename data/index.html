@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComToAir - RS-232 to WiFi Bridge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .status-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .status-value {
+            color: #333;
+        }
+        
+        .status-online {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        .status-offline {
+            color: #f44336;
+            font-weight: bold;
+        }
+        
+        .data-card {
+            background: #f8f9fa;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .data-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .data-display {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background: #6c757d;
+        }
+        
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        
+        .config-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔌 ComToAir</h1>
+            <p>RS-232 to WiFi Bridge на базе ESP32-C6</p>
+        </header>
+        
+        <div class="content">
+            <div class="status-card">
+                <h2>📊 Статус устройства</h2>
+                <div class="status-item">
+                    <span class="status-label">WiFi:</span>
+                    <span class="status-value status-online" id="wifi-status">Подключено</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">RS-232:</span>
+                    <span class="status-value status-online" id="rs232-status">Активен</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">IP адрес:</span>
+                    <span class="status-value" id="ip-address">Загрузка...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Время работы:</span>
+                    <span class="status-value" id="uptime">Загрузка...</span>
+                </div>
+            </div>
+            
+            <div class="data-card">
+                <h2>📥 Данные RS-232</h2>
+                <div class="data-display" id="data-display">Ожидание данных...</div>
+                <div class="timestamp" id="last-update">Последнее обновление: никогда</div>
+            </div>
+            
+            <div class="controls">
+                <button onclick="refreshData()">🔄 Обновить</button>
+                <button onclick="clearData()" class="secondary">🗑️ Очистить</button>
+                <button onclick="toggleAutoRefresh()" id="auto-refresh-btn">⏸️ Автообновление</button>
+            </div>
+            
+            <div class="config-section">
+                <h3>⚙️ Настройки</h3>
+                <div class="form-group">
+                    <label>Интервал автообновления (сек):</label>
+                    <input type="number" id="refresh-interval" value="1" min="0.5" max="60" step="0.5">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let autoRefreshEnabled = true;
+        let refreshInterval = 1000;
+        let refreshTimer = null;
+        
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('last-update').textContent = 
+                `Последнее обновление: ${now.toLocaleTimeString()}`;
+        }
+        
+        function refreshData() {
+            fetch('/api/data')
+                .then(response => response.json())
+                .then(data => {
+                    const display = document.getElementById('data-display');
+                    if (data.data && data.data.length > 0) {
+                        display.textContent = data.data;
+                    } else {
+                        display.textContent = 'Нет данных';
+                    }
+                    updateTimestamp();
+                })
+                .catch(error => {
+                    console.error('Ошибка получения данных:', error);
+                    document.getElementById('data-display').textContent = 
+                        'Ошибка получения данных';
+                });
+            
+            // Обновление статуса
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ip) {
+                        document.getElementById('ip-address').textContent = data.ip;
+                    }
+                    if (data.uptime !== undefined) {
+                        document.getElementById('uptime').textContent = 
+                            formatUptime(data.uptime);
+                    }
+                })
+                .catch(error => console.error('Ошибка получения статуса:', error));
+        }
+        
+        function clearData() {
+            document.getElementById('data-display').textContent = 'Данные очищены';
+            updateTimestamp();
+        }
+        
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            const btn = document.getElementById('auto-refresh-btn');
+            
+            if (autoRefreshEnabled) {
+                btn.textContent = '⏸️ Автообновление';
+                startAutoRefresh();
+            } else {
+                btn.textContent = '▶️ Автообновление';
+                stopAutoRefresh();
+            }
+        }
+        
+        function startAutoRefresh() {
+            if (refreshTimer) clearInterval(refreshTimer);
+            const interval = parseFloat(document.getElementById('refresh-interval').value) * 1000;
+            refreshTimer = setInterval(refreshData, interval);
+        }
+        
+        function stopAutoRefresh() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+                refreshTimer = null;
+            }
+        }
+        
+        function formatUptime(seconds) {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (days > 0) {
+                return `${days}д ${hours}ч ${minutes}м`;
+            } else if (hours > 0) {
+                return `${hours}ч ${minutes}м ${secs}с`;
+            } else if (minutes > 0) {
+                return `${minutes}м ${secs}с`;
+            } else {
+                return `${secs}с`;
+            }
+        }
+        
+        // Инициализация
+        document.getElementById('refresh-interval').addEventListener('change', function() {
+            if (autoRefreshEnabled) {
+                startAutoRefresh();
+            }
+        });
+        
+        // Первоначальная загрузка
+        refreshData();
+        if (autoRefreshEnabled) {
+            startAutoRefresh();
+        }
+    </script>
+</body>
+</html>
+

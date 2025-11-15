@@ -1,0 +1,46 @@
+# PlatformIO
+.pio/
+.vscode/
+*.pyc
+__pycache__/
+
+# Build artifacts
+build/
+dist/
+
+# IDE
+*.swp
+*.swo
+*~
+.DS_Store
+.idea/
+
+# PlatformIO specific
+.sconsign.dblite
+.sconsign.dblite.dblite
+
+# Environment variables
+.env
+
+# Compiled files
+*.o
+*.a
+*.elf
+*.bin
+*.hex
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# SDK config (может содержать персональные настройки)
+sdkconfig.old
