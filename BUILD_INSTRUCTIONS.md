@@ -29,7 +29,7 @@
 
 ### Шаг 3: Открытие проекта
 1. В VS Code выберите File → Open Folder
-2. Перейдите в `/Users/wind/Documents/PlatformIO/Projects/ComToAir`
+2. Перейдите в папку с проектом ComToAir
 3. Откройте папку проекта
 
 ## Аппаратное подключение
